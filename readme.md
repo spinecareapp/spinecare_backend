@@ -22,7 +22,7 @@ Berikut adalah langkah-langkah untuk menginstal proyek ini di lingkungan lokal A
 
 1. **Clone repositori ini**
    ```bash
-   git clone https://github.com/itsmearss/spinemotion-backend.git
+   git clone https://github.com/fandhysh/spinecare-backend.git
    ```
 2. **Masuk ke direktori proyek**
    ```bash
