@@ -1,6 +1,6 @@
-# Spinemotion Backend
+# Spinecare Backend
 
-Backend Untuk aplikasi spinemotion. Spinemotion merupakan aplikasi mobile untuk mendeteksi gerakan olahraga untuk mencegah postur bungkuk pada remaja.
+Backend Untuk aplikasi spinecare. Spinecare merupakan aplikasi mobile untuk mendeteksi gerakan olahraga untuk mencegah postur bungkuk pada remaja.
 
 ## Daftar Isi
 
@@ -26,7 +26,7 @@ Berikut adalah langkah-langkah untuk menginstal proyek ini di lingkungan lokal A
    ```
 2. **Masuk ke direktori proyek**
    ```bash
-   cd spinemotion-backend-main
+   cd spinecare-backend
    ```
 3. **Buat dan aktifkan virtual environment**
    ```bash
