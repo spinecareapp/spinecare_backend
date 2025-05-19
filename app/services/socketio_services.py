@@ -7,7 +7,9 @@ import pickle
 import base64
 from bson import ObjectId
 from datetime import datetime
-from app import socketio, emit
+from app import socketio  # ✅
+from flask_socketio import emit  # ✅ langsung dari modul aslinya
+
 
 def handle_connect():
     print('Client connected')

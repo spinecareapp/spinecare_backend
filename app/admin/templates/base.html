@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Admin - SpineCare{% endblock %}</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,400,600,700,800,900i">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/ready.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/demo.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        {% include "partials/_navbar.html" %}
+        {% include "partials/_sidebar.html" %}
+        
+        <div class="main-panel">
+            <div class="content">
+                <div class="container-fluid">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                      {% if messages %}
+                        {% for category, message in messages %}
+                          <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
+                    
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="{{ url_for('static', filename='assets/js/core/jquery.3.2.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/core/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/ready.min.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+faktor memperberat,faktor memperingan,durasi,tingkat nyeri,gerakan 1,gerakan 2,gerakan 3
+membungkuk,Berbaring/istirahat,dibawah 6 minggu,sedang,cobra-pose,bird-dog,glute-bridge
+membungkuk,Peregangan,6 sampai 12 minggu,ringan,cobra-pose,bird-dog,plank
+"membungkuk, berdiri lama",Berbaring/istirahat,diatas 12 minggu,sedang,bird-dog,plank,side-plank
+"membungkuk, berdiri lama",Jalan kaki ringan,6 sampai 12 minggu,ringan,cat-cow,pelvic-tilt,hamstring-exercise
+"membungkuk, berdiri lama",Jalan kaki ringan,diatas 12 minggu,ringan,cat-cow,pelvic-tilt,supine-spinal-twist
+"membungkuk, duduk lama",Berbaring/istirahat,6 sampai 12 minggu,sedang,cobra-pose,bird-dog,glute-bridge
+"membungkuk, duduk lama",Berbaring/istirahat,dibawah 6 minggu,sedang,cobra-pose,bird-dog,plank
+"membungkuk, duduk lama",Jalan kaki ringan,diatas 12 minggu,sedang,bird-dog,side-plank,glute-bridge
+"membungkuk, duduk lama",Kompres hangat/dingin,6 sampai 12 minggu,sedang,cobra-pose,bird-dog,glute-bridge
+"membungkuk, duduk lama",Peregangan,dibawah 6 minggu,sedang,cobra-pose,bird-dog,plank
+"membungkuk, memutar tubuh",Kompres hangat/dingin,dibawah 6 minggu,ringan,cobra-pose,bird-dog,glute-bridge
+"membungkuk, mengangkat beban",Berbaring/istirahat,dibawah 6 minggu,ringan,cobra-pose,bird-dog,plank
+"membungkuk, mengangkat beban",Berbaring/istirahat,dibawah 6 minggu,sedang,cobra-pose,bird-dog,glute-bridge
+duduk lama,Jalan kaki ringan,6 sampai 12 minggu,ringan,cobra-pose,bird-dog,plank
+duduk lama,Peregangan,6 sampai 12 minggu,sedang,cobra-pose,bird-dog,glute-bridge
+duduk lama,Peregangan,diatas 12 minggu,sedang,cobra-pose,bird-dog,plank
+duduk lama,Peregangan,dibawah 6 minggu,ringan,cobra-pose,bird-dog,glute-bridge
+"duduk lama, berdiri lama",Jalan kaki ringan,6 sampai 12 minggu,ringan,cat-cow,pelvic-tilt,hamstring-exercise
+"duduk lama, berdiri lama",Kompres hangat/dingin,6 sampai 12 minggu,ringan,bird-dog,plank,side-plank
+"duduk lama, memutar tubuh",Jalan kaki ringan,6 sampai 12 minggu,ringan,cat-cow,pelvic-tilt,child-pose
+"duduk lama, memutar tubuh",Jalan kaki ringan,6 sampai 12 minggu,sedang,cat-cow,pelvic-tilt,child-pose
+"duduk lama, memutar tubuh",Jalan kaki ringan,diatas 12 minggu,ringan,cat-cow,pelvic-tilt,hamstring-exercise
+"duduk lama, memutar tubuh",Kompres hangat/dingin,6 sampai 12 minggu,sedang,bird-dog,side-plank,glute-bridge
+"duduk lama, memutar tubuh",Kompres hangat/dingin,diatas 12 minggu,sedang,bird-dog,plank,side-plank
+"duduk lama, mengangkat beban",Berbaring/istirahat,6 sampai 12 minggu,sedang,bird-dog,plank,side-plank
+"duduk lama, mengangkat beban",Berbaring/istirahat,dibawah 6 minggu,ringan,cobra-pose,bird-dog,glute-bridge
+"duduk lama, mengangkat beban",Jalan kaki ringan,dibawah 6 minggu,sedang,cobra-pose,bird-dog,plank
+"duduk lama, mengangkat beban",Peregangan,6 sampai 12 minggu,ringan,cobra-pose,bird-dog,glute-bridge
+"duduk lama, mengangkat beban",Peregangan,diatas 12 minggu,ringan,cobra-pose,bird-dog,plank
+berdiri lama,Berbaring/istirahat,6 sampai 12 minggu,sedang,knee-to-chest,child-pose,pelvic-tilt
+berdiri lama,Berbaring/istirahat,dibawah 6 minggu,ringan,knee-to-chest,child-pose,hamstring-exercise
+berdiri lama,Kompres hangat/dingin,diatas 12 minggu,ringan,knee-to-chest,child-pose,pelvic-tilt
+berdiri lama,Peregangan,dibawah 6 minggu,ringan,knee-to-chest,child-pose,hamstring-exercise
+"berdiri lama, memutar tubuh",Berbaring/istirahat,dibawah 6 minggu,sedang,knee-to-chest,child-pose,pelvic-tilt
+"berdiri lama, memutar tubuh",Kompres hangat/dingin,diatas 12 minggu,ringan,knee-to-chest,child-pose,hamstring-exercise
+"berdiri lama, mengangkat beban",Kompres hangat/dingin,dibawah 6 minggu,sedang,bird-dog,side-plank,glute-bridge
+"berdiri lama, mengangkat beban",Peregangan,diatas 12 minggu,ringan,knee-to-chest,child-pose,pelvic-tilt
+mengangkat beban,Berbaring/istirahat,6 sampai 12 minggu,ringan,cobra-pose,bird-dog,plank
+mengangkat beban,Jalan kaki ringan,6 sampai 12 minggu,sedang,cobra-pose,bird-dog,glute-bridge
+mengangkat beban,Peregangan,diatas 12 minggu,ringan,cobra-pose,bird-dog,plank
+"mengangkat beban, memutar tubuh",Berbaring/istirahat,6 sampai 12 minggu,ringan,cobra-pose,bird-dog,glute-bridge
+"mengangkat beban, memutar tubuh",Jalan kaki ringan,6 sampai 12 minggu,ringan,cobra-pose,bird-dog,plank
+memutar tubuh,Berbaring/istirahat,6 sampai 12 minggu,ringan,bird-dog,plank,side-plank
+memutar tubuh,Berbaring/istirahat,diatas 12 minggu,sedang,bird-dog,side-plank,glute-bridge
+memutar tubuh,Berbaring/istirahat,dibawah 6 minggu,sedang,bird-dog,plank,side-plank
+memutar tubuh,Jalan kaki ringan,dibawah 6 minggu,sedang,cat-cow,pelvic-tilt,hamstring-exercise
+memutar tubuh,Kompres hangat/dingin,6 sampai 12 minggu,ringan,bird-dog,side-plank,glute-bridge
+memutar tubuh,Kompres hangat/dingin,dibawah 6 minggu,ringan,bird-dog,plank,side-plank
+memutar tubuh,Peregangan,dibawah 6 minggu,ringan,cobra-pose,bird-dog,glute-bridge

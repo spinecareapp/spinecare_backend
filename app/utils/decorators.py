@@ -1,11 +1,13 @@
-from functools import wraps
 from flask import request, jsonify
-from app import jwt, db
+from functools import wraps
+
+from flask import session, redirect, url_for, flash
 
 
 def api_key_required(func):
     @wraps(func)
     def check_api_key(*args, **kwargs):
+        from app import db  # ⬅ pindahkan ke sini
         apiKey = request.headers.get("x-api-key")
         print(f"Received API Key: {apiKey}")  # Log API key yang diterima
 
@@ -30,3 +32,12 @@ def api_key_required(func):
             return jsonify({"message": "Tidak ada token"}), 500
 
     return check_api_key
+
+def admin_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_id' not in session:
+            flash("Silakan login terlebih dahulu", "warning")
+            return redirect(url_for('admin.login'))  # Pastikan 'admin.login' sesuai blueprint kamu
+        return f(*args, **kwargs)
+    return decorated_function

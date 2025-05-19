@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Kelola Artikel{% endblock %}
+
+{% block content %}
+<h2>Manajemen Artikel</h2>
+
+<!-- Form Tambah Artikel -->
+<form method="POST" action="{{ url_for('admin.add_article_admin') }}" enctype="multipart/form-data" class="mb-4">
+  <div class="form-group">
+    <label>Judul</label>
+    <input type="text" name="title" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Konten</label>
+    <textarea name="content" class="form-control" rows="5" required></textarea>
+  </div>
+  <div class="form-group">
+    <label>Penulis</label>
+    <input type="text" name="writer" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Sumber</label>
+    <input type="text" name="source" class="form-control">
+  </div>
+  <div class="form-group">
+    <label>Gambar</label>
+    <input type="file" name="photo" class="form-control-file">
+  </div>
+  <button type="submit" class="btn btn-success">Tambah Artikel</button>
+</form>
+
+<hr>
+
+<!-- Tabel Artikel -->
+<div class="table-responsive">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Judul</th>
+        <th>Penulis</th>
+        <th>Gambar</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in articles %}
+      <tr>
+        <td>{{ a.title }}</td>
+        <td>{{ a.writer }}</td>
+        <td>
+          {% if a.photo %}
+            <img src="{{ url_for('static', filename='uploads/articles/' ~ a.photo) }}" width="100">
+          {% else %}
+            Tidak ada gambar
+          {% endif %}
+        </td>
+        <td>
+          <a href="{{ url_for('admin.delete_article_admin', id=a._id) }}" class="btn btn-sm btn-danger">🗑 Hapus</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

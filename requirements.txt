@@ -53,7 +53,7 @@ pyarrow==19.0.0
 pycparser==2.22
 pydeck==0.9.1
 Pygments==2.19.1
-PyJWT==2.10.1
+PyJWT==2.6.0
 pymongo==4.11
 pyparsing==3.2.1
 python-dateutil==2.9.0.post0

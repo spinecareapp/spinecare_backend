@@ -1,0 +1,39 @@
+<div class="sidebar">
+  <div class="scrollbar-inner sidebar-wrapper">
+    <div class="user">
+      <div class="photo">
+        <img src="{{ url_for('static', filename='assets/img/profile.jpg') }}">
+      </div>
+      <div class="info">
+        <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
+          <span>
+            Hello, {{ session.get('username', 'Admin') }}
+            <span class="user-level">Administrator</span>
+            <span class="caret"></span>
+          </span>
+        </a>
+        <div class="collapse in" id="collapseExample" aria-expanded="true">
+          <ul class="nav">
+            <li><a href="#"><span class="link-collapse">My Profile</span></a></li>
+            <li><a href="#"><span class="link-collapse">Edit Profile</span></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <ul class="nav">
+      <li class="nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+        <a href="{{ url_for('admin.dashboard') }}">
+          <i class="la la-dashboard"></i>
+          <p>Dashboard</p>
+        </a>
+      </li>
+      <li class="nav-item {% if request.endpoint == 'admin.admin_articles' %}active{% endif %}">
+        <a href="{{ url_for('admin.admin_articles') }}">
+          <i class="la la-newspaper-o"></i>
+          <p>Kelola Artikel</p>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
