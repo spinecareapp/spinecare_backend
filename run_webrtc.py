@@ -1,25 +1,23 @@
-from flask import Blueprint, request, jsonify
-from app import db
+from flask import Flask, request, jsonify
+from pymongo import MongoClient
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import pandas as pd
 import os
 
-rekomendasi_bp = Blueprint("rekomendasi", __name__)
+# === 1. Koneksi MongoDB Lokal ===
+client = MongoClient("mongodb://localhost:27017/")
+db = client["spinemotion_db"]  # Ganti nama DB sesuai yang kamu pakai
 
-# Ambil path file dataset
+# === 2. Load Dataset CSV ===
 current_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.abspath(
-    os.path.join(current_dir, "..", "..", "model_weights", "dataset-rekomendasi.csv")
+    os.path.join(current_dir, "model_weights", "dataset-rekomendasi.csv")
 )
-print("Dataset Path:", file_path)
 
-# Load CSV dan normalisasi kolom
 df = pd.read_csv(file_path, encoding="utf-8-sig")
 df.columns = df.columns.str.strip().str.lower()
-print("Kolom dalam dataset:", df.columns.tolist())
 
-# Kolom yang wajib ada dalam snake_case
 required_cols = [
     "faktor_memperberat",
     "faktor_memperingan",
@@ -34,7 +32,7 @@ missing = [col for col in required_cols if col not in df.columns]
 if missing:
     raise Exception(f"Kolom berikut TIDAK ADA di dataset: {missing}")
 
-# Normalisasi nilai string
+# Normalisasi
 for col in [
     "faktor_memperberat",
     "faktor_memperingan",
@@ -44,13 +42,12 @@ for col in [
 ]:
     df[col] = df[col].astype(str).str.strip().str.lower()
 
-# Pecah faktor memperberat jadi list
-
 df["faktor_memperberat_list"] = df["faktor_memperberat"].apply(
     lambda x: [item.strip() for item in x.split(",")]
 )
 
 
+# === 3. Fungsi Logika Rekomendasi ===
 def rekomendasi_gerakan(
     faktor_memperberat_user,
     faktor_memperingan_user,
@@ -87,7 +84,11 @@ def rekomendasi_gerakan(
         return []
 
 
-@rekomendasi_bp.route("/recomendation", methods=["POST"])
+# === 4. Setup Flask App ===
+app = Flask(__name__)
+
+
+@app.route("/recomendation", methods=["POST"])
 def get_rekomendasi():
     data = request.get_json()
     email = data.get("email")
@@ -99,13 +100,6 @@ def get_rekomendasi():
     if not email:
         return jsonify({"error": "Email harus disertakan"}), 400
 
-    print("Input diterima:")
-    print("- Email:", email)
-    print("- Faktor memperberat:", faktor_memperberat)
-    print("- Faktor memperingan:", faktor_memperingan)
-    print("- Durasi:", durasi)
-    print("- Tingkat nyeri:", tingkat_nyeri)
-
     hasil = rekomendasi_gerakan(
         faktor_memperberat, faktor_memperingan, durasi, tingkat_nyeri
     )
@@ -113,14 +107,19 @@ def get_rekomendasi():
     if hasil:
         rekomendasi_pertama = hasil[0]
         timestamp_wib = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
-        db.db.recomendation.insert_one(
+
+        db.recomendation.insert_one(
             {
                 "email": email,
                 "timestamp": timestamp_wib,
                 "rekomendasi": rekomendasi_pertama,
             }
         )
-
         return jsonify(rekomendasi_pertama)
     else:
         return jsonify({"message": "Tidak ada rekomendasi ditemukan"}), 404
+
+
+# === 5. Jalankan App ===
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)
