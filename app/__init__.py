@@ -10,6 +10,7 @@ jwt = JWTManager()
 mail = Mail()
 socketio = SocketIO()
 
+
 def create_app(config_class):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -28,7 +29,7 @@ def create_app(config_class):
         socketio_routes,
         recomendation_routes,
         admin_routes,
-        article_routes  # ⬅ dipindah ke sini
+        article_routes,  # ⬅ dipindah ke sini
     )
 
     # Register routes
@@ -40,5 +41,6 @@ def create_app(config_class):
     app.register_blueprint(socketio_routes.bp)
     app.register_blueprint(recomendation_routes.rekomendasi_bp)
     app.register_blueprint(admin_routes.admin_bp)
+    app.register_blueprint(history_bp, url_prefix="/api/history")
 
     return app
