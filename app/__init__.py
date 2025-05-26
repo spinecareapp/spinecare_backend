@@ -41,6 +41,5 @@ def create_app(config_class):
     app.register_blueprint(socketio_routes.bp)
     app.register_blueprint(recomendation_routes.rekomendasi_bp)
     app.register_blueprint(admin_routes.admin_bp)
-    app.register_blueprint(history_bp, url_prefix="/api/history")
 
     return app

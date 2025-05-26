@@ -69,13 +69,14 @@ def rekomendasi_gerakan(
     return rekomendasi[:jumlah_rekomendasi]
 
 
-def simpan_rekomendasi(email, rekomendasi):
+def simpan_rekomendasi(email, rekomendasi, diagnosa):
     timestamp = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
     db.db.recomendation.insert_one(
         {
             "email": email,
             "timestamp": timestamp,
             "rekomendasi": rekomendasi,
+            "diagnosa": diagnosa,
         }
     )
 

@@ -25,13 +25,19 @@ def get_rekomendasi():
         faktor_memperberat, faktor_memperingan, durasi, tingkat_nyeri
     )
     if hasil:
-        simpan_rekomendasi(email, hasil[0])
+        diagnosa = {
+            "faktor_memperberat": faktor_memperberat,
+            "faktor_memperingan": faktor_memperingan,
+            "durasi": durasi,
+            "tingkat_nyeri": tingkat_nyeri,
+        }
+        simpan_rekomendasi(email, hasil[0], diagnosa)
         return jsonify(hasil[0]), 200
     else:
         return jsonify({"message": "Tidak ada rekomendasi ditemukan"}), 404
 
 
-@rekomendasi_bp.route("/api/history", methods=["GET"])
+@rekomendasi_bp.route("/historyrecomendation", methods=["GET"])
 def get_history():
     email = request.args.get("email")
     if not email:
