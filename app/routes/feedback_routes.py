@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from app.services.feedback_service import simpan_feedback
+from app.services.feedback_service import ambil_feedback_by_email, simpan_feedback
 
-bp = Blueprint('feedback', __name__)
+bp = Blueprint("feedback", __name__)
 
 
 @bp.route("/feedback", methods=["POST"])
@@ -31,3 +31,13 @@ def post_feedback():
         ),
         201,
     )
+
+
+@bp.route("/feedback", methods=["GET"])
+def get_feedback():
+    email = request.args.get("email")
+    if not email:
+        return jsonify({"error": "Parameter email diperlukan"}), 400
+
+    feedbacks = ambil_feedback_by_email(email)
+    return jsonify(feedbacks), 200
