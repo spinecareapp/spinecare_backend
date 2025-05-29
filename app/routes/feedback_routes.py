@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from services.feedback_service import simpan_feedback
+from app.services.feedback_service import simpan_feedback
+
 
 feedback_bp = Blueprint("feedback_bp", __name__)
 
