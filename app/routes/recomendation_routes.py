@@ -6,10 +6,10 @@ from app.services.recomendation_services import (
     get_history_by_email,
 )
 
-rekomendasi_bp = Blueprint("rekomendasi", __name__)
+bp = Blueprint("rekomendasi", __name__)
 
 
-@rekomendasi_bp.route("/recomendation", methods=["POST"])
+@bp.route("/recomendation", methods=["POST"])
 def get_rekomendasi():
     data = request.get_json()
     email = data.get("email")
@@ -37,7 +37,7 @@ def get_rekomendasi():
         return jsonify({"message": "Tidak ada rekomendasi ditemukan"}), 404
 
 
-@rekomendasi_bp.route("/historyrecomendation", methods=["GET"])
+@bp.route("/historyrecomendation", methods=["GET"])
 def get_history():
     email = request.args.get("email")
     if not email:
