@@ -29,7 +29,8 @@ def create_app(config_class):
         socketio_routes,
         recomendation_routes,
         admin_routes,
-        article_routes,  # ⬅ dipindah ke sini
+        article_routes,
+        feedback_routes
     )
 
     # Register routes
@@ -40,6 +41,7 @@ def create_app(config_class):
     app.register_blueprint(history_routes.bp)
     app.register_blueprint(socketio_routes.bp)
     app.register_blueprint(recomendation_routes.rekomendasi_bp)
+    app.register_blueprint(feedback_routes.bp)
     app.register_blueprint(admin_routes.admin_bp)
 
     return app
