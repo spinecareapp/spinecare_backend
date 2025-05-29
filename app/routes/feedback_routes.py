@@ -12,6 +12,7 @@ def post_feedback():
 
     email = data.get("email")
     date = data.get("date")
+    daftar_gerakan = data.get("daftar_gerakan", [])
     pain = data.get("pain_level")
 
     if not email or not date or pain is None:
@@ -24,7 +25,7 @@ def post_feedback():
     except (ValueError, TypeError):
         return jsonify({"error": "pain_level harus integer 0–10"}), 400
 
-    result = simpan_feedback(email, date, pain)
+    result = simpan_feedback(email, date, daftar_gerakan, pain)
     return (
         jsonify(
             {"message": "Feedback received", "feedback_id": str(result.inserted_id)}
