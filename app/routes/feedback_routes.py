@@ -1,11 +1,10 @@
 from flask import Blueprint, request, jsonify
 from app.services.feedback_service import simpan_feedback
 
+bp = Blueprint('feedback', __name__)
 
-feedback_bp = Blueprint("feedback_bp", __name__)
 
-
-@feedback_bp.route("/feedback", methods=["POST"])
+@bp.route("/feedback", methods=["POST"])
 def post_feedback():
     data = request.get_json(silent=True)
     if not data:
