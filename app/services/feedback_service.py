@@ -16,9 +16,6 @@ def simpan_feedback(email: str, date: str, daftarGerakan: str, pain_level: int):
 
 
 def ambil_feedback_by_email(email: str):
-    """
-    Ambil semua feedback berdasarkan email dari koleksi `feedback`.
-    """
     cursor = db.db.feedback.find({"email": email})
     feedbacks = []
     for doc in cursor:
@@ -28,6 +25,7 @@ def ambil_feedback_by_email(email: str):
                 "email": doc["email"],
                 "date": doc["date"],
                 "painLevel": doc["pain_level"],
+                "daftar_gerakan": doc.get("daftar_gerakan", []),  # <- tambahkan ini
             }
         )
     return feedbacks
