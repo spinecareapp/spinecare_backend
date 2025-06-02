@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.services.admin_services import login_admin
+from app.services.article_services import update_article_with_file_service
 from app.utils.decorators import admin_login_required
 from app import db  # ✅ import db agar bisa query ke Mongo
 from bson import ObjectId  # ✅ untuk manipulasi _id dari MongoDB
@@ -58,14 +59,12 @@ def dashboard():
 def table():
     return render_template('forms.html')
 
-# ✅ LIST ARTIKEL
 @admin_bp.route('/articles')
 @admin_login_required
 def admin_articles():
     articles = list(db.db.articles.find().sort('_id', -1))
     return render_template('articles.html', articles=articles)
 
-# ✅ TAMBAH ARTIKEL
 @admin_bp.route('/articles/add', methods=['POST'])
 @admin_login_required
 def add_article_admin():
@@ -80,7 +79,7 @@ def add_article_admin():
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         filename = f"{timestamp}_{photo.filename}"
         UPLOAD_FOLDER = "app/static/uploads/articles"
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # ✅ Pastikan folder ada
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         photo.save(os.path.join(UPLOAD_FOLDER, filename))
 
     article = {
@@ -94,7 +93,15 @@ def add_article_admin():
     flash("Artikel berhasil ditambahkan", "success")
     return redirect(url_for('admin.admin_articles'))
 
-# ✅ HAPUS ARTIKEL
+@admin_bp.route('/articles/edit/<id>', methods=['POST'])
+@admin_login_required
+def edit_article_admin(id):
+    data = request.form.to_dict()
+    photo = request.files.get('photo')
+    update_article_with_file_service(id, data, photo)
+    flash("Artikel berhasil diperbarui", "success")
+    return redirect(url_for('admin.admin_articles'))
+
 @admin_bp.route('/articles/delete/<id>')
 @admin_login_required
 def delete_article_admin(id):

@@ -1,66 +1,126 @@
-{% extends 'base.html' %}
-
-{% block title %}Kelola Artikel{% endblock %}
-
-{% block content %}
-<h2>Manajemen Artikel</h2>
-
-<!-- Form Tambah Artikel -->
-<form method="POST" action="{{ url_for('admin.add_article_admin') }}" enctype="multipart/form-data" class="mb-4">
-  <div class="form-group">
-    <label>Judul</label>
-    <input type="text" name="title" class="form-control" required>
+{% extends 'base.html' %} {% block content %}
+<div class="container-fluid">
+  <h4 class="page-title">Manajemen Artikel</h4>
+  <div class="row">
+    <div class="col-md-12">
+      <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalAdd">+ Tambah Artikel</button>
+      <div class="card">
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Judul</th>
+                <th>Penulis</th>
+                <th>Gambar</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for article in articles %}
+              <tr>
+                <td>{{ article.title }}</td>
+                <td>{{ article.writer }}</td>
+                <td>
+                  {% if article.photo %}
+                  <img src="{{ url_for('article.get_image', image_name=article.photo) }}" width="100" height="100" alt="Thumbnail" />
+                  {% else %}
+                  <span class="text-muted">Tidak ada gambar</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="#" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEdit{{ article._id }}">✏ Edit</a>
+                  <a href="{{ url_for('admin.delete_article_admin', id=article._id) }}" class="btn btn-danger btn-sm">🗑 Hapus</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="form-group">
-    <label>Konten</label>
-    <textarea name="content" class="form-control" rows="5" required></textarea>
-  </div>
-  <div class="form-group">
-    <label>Penulis</label>
-    <input type="text" name="writer" class="form-control" required>
-  </div>
-  <div class="form-group">
-    <label>Sumber</label>
-    <input type="text" name="source" class="form-control">
-  </div>
-  <div class="form-group">
-    <label>Gambar</label>
-    <input type="file" name="photo" class="form-control-file">
-  </div>
-  <button type="submit" class="btn btn-success">Tambah Artikel</button>
-</form>
-
-<hr>
-
-<!-- Tabel Artikel -->
-<div class="table-responsive">
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>Judul</th>
-        <th>Penulis</th>
-        <th>Gambar</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for a in articles %}
-      <tr>
-        <td>{{ a.title }}</td>
-        <td>{{ a.writer }}</td>
-        <td>
-          {% if a.photo %}
-            <img src="{{ url_for('static', filename='uploads/articles/' ~ a.photo) }}" width="100">
-          {% else %}
-            Tidak ada gambar
-          {% endif %}
-        </td>
-        <td>
-          <a href="{{ url_for('admin.delete_article_admin', id=a._id) }}" class="btn btn-sm btn-danger">🗑 Hapus</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
 </div>
-{% endblock %}
+
+<!-- Modal Tambah Artikel -->
+<div class="modal fade" id="modalAdd" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('admin.add_article_admin') }}" enctype="multipart/form-data" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Artikel</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Judul</label>
+          <input type="text" name="title" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label>Penulis</label>
+          <input type="text" name="writer" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label>Konten</label>
+          <textarea name="content" class="form-control"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Sumber</label>
+          <input type="text" name="source" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Gambar</label>
+          <input type="file" name="photo" class="form-control" required />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-success">Tambah</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Semua Modal Edit Dipisahkan di Luar Tabel -->
+{% for article in articles %}
+<div class="modal fade" id="modalEdit{{ article._id }}" tabindex="-1" role="dialog" aria-labelledby="modalEditLabel{{ article._id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="POST" action="{{ url_for('admin.edit_article_admin', id=article._id) }}" enctype="multipart/form-data" class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalEditLabel{{ article._id }}">Edit Artikel</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Judul</label>
+          <input type="text" name="title" value="{{ article.title }}" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label>Penulis</label>
+          <input type="text" name="writer" value="{{ article.writer }}" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label>Konten</label>
+          <textarea name="content" class="form-control" required>{{ article.content }}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Sumber</label>
+          <input type="text" name="source" value="{{ article.source }}" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Gambar (jika ingin ganti)</label>
+          <input type="file" name="photo" class="form-control" />
+        </div>
+        {% if article.photo %}
+        <div class="text-center my-3">
+          <img src="{{ url_for('article.get_image', image_name=article.photo) }}" width="100" height="100" />
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endfor %} {% endblock %}

@@ -71,6 +71,22 @@ def delete_article_service(id):
             "message": "Article gagal dihapus"
         }, 404
         
+def update_article_with_file_service(id, data, photo=None):
+    update_fields = {
+        "title": data["title"],
+        "content": data["content"],
+        "writer": data["writer"],
+        "source": data["source"]
+    }
+
+    if photo:
+        filename = f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{photo.filename}"
+        photo.save(f"static/uploads/articles/{filename}")
+        update_fields["photo"] = filename
+
+    db.db.articles.update_one({"_id": ObjectId(id)}, {"$set": update_fields})
+    return {"message": "Article updated"}, 200        
+        
 def update_article_service(id, data):
     title = data["title"]
     content = data["content"]
@@ -89,3 +105,6 @@ def update_article_service(id, data):
     return {
         "message": "Article berhasil diubah"
     }
+    
+    
+    
