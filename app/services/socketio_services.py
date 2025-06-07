@@ -1,5 +1,6 @@
 # run.py
-from app import db
+
+import base64
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -7,16 +8,18 @@ import torch
 import torch.nn as nn
 import pickle
 from collections import deque, defaultdict
-import base64
-from bson import ObjectId
 from datetime import datetime
-from app import socketio
+from bson import ObjectId
+
+from app import db, socketio
 from flask_socketio import emit
 
 
-# ================================================
-# STEP A: Load PyTorch LSTM Model + Label Encoder
-# ================================================
+# ================================
+# A. Load Model & Label Encoder
+# ================================
+
+
 class PoseLSTM(nn.Module):
     def __init__(self, input_size=132, hidden_size=128, num_classes=12):
         super(PoseLSTM, self).__init__()
@@ -25,42 +28,38 @@ class PoseLSTM(nn.Module):
 
     def forward(self, x):
         _, (h_n, _) = self.lstm(x)
-        out = self.fc(h_n[-1])
-        return out
+        return self.fc(h_n[-1])
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Ganti path berikut sesuai struktur folder Anda
-MODEL_WEIGHTS_PATH = "./model_weights/final_lstm_pose_model.pt"
-LABEL_ENCODER_PATH = "./model_weights/final_label_encoder.pkl"
+# Path model & encoder
+MODEL_PATH = "./model_weights/final_lstm_pose_model.pt"
+ENCODER_PATH = "./model_weights/final_label_encoder.pkl"
 
-# Muat label encoder
-with open(LABEL_ENCODER_PATH, "rb") as f:
+# Load label encoder
+with open(ENCODER_PATH, "rb") as f:
     label_encoder = pickle.load(f)
 
-# Inisialisasi model dan load bobot
+# Load model
 num_classes = len(label_encoder.classes_)
-lstm_model = PoseLSTM(input_size=132, hidden_size=128, num_classes=num_classes).to(
-    DEVICE
-)
-lstm_model.load_state_dict(torch.load(MODEL_WEIGHTS_PATH, map_location=DEVICE))
-lstm_model.eval()
+model = PoseLSTM(num_classes=num_classes).to(DEVICE)
+model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+model.eval()
 
-# =====================================================
-# STEP B: Siapkan MediaPipe dan Buffer Per-User (Deque)
-# =====================================================
+
+# ================================
+# B. MediaPipe Setup & Buffer
+# ================================
+
 mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
+user_buffers = defaultdict(lambda: deque(maxlen=30))  # buffer per user
 
-# Kita akan menyimpan satu deque (buffer) untuk setiap user_id.
-# Deque berisi baris pose (132-dimensi) sampai mencapai 30 frame
-# agar bisa dipakai LSTM.
-user_sequences = defaultdict(lambda: deque(maxlen=30))
 
-# =====================================================
-# STEP C: Handler Socket.IO
-# =====================================================
+# ================================
+# C. Socket.IO Handlers
+# ================================
 
 
 def handle_connect():
@@ -75,35 +74,32 @@ def handle_message(message):
     print("Received message:", message)
 
 
-# Fungsi utama untuk memproses frame yang masuk
 def handle_image(data):
     try:
-        tanggal = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
-        image_data = data.get("image_data")
+        # Ambil data dari klien
         user_id = data.get("userId")
-        selected_pose = data.get("selected_pose")  # pose yang diharapkan
+        selected_pose = data.get("selected_pose")
+        image_data = data.get("image_data")
 
-        # --- Decode base64 image dari klien ---
-        image_data_bytes = base64.b64decode(image_data)
-        image_array = np.frombuffer(image_data_bytes, dtype=np.uint8)
-        decoded_image = cv2.imdecode(image_array, cv2.IMREAD_UNCHANGED)
+        if not all([user_id, selected_pose, image_data]):
+            raise ValueError("Data tidak lengkap dari klien")
 
-        # Resize / (opsional) bisa disesuaikan
-        # Misal: kita pertahankan resolusi asli, atau sekali resize:
-        image = cv2.cvtColor(decoded_image, cv2.COLOR_BGR2RGB)
-        # (Jika perlu resize, misalnya jadi 680x360:)
-        # image = cv2.resize(image, (680, 360), interpolation=cv2.INTER_LINEAR)
+        # Decode base64
+        image_bytes = base64.b64decode(image_data)
+        np_image = np.frombuffer(image_bytes, np.uint8)
+        image = cv2.imdecode(np_image, cv2.IMREAD_COLOR)
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+        # Jalankan MediaPipe
         with mp_holistic.Holistic(
             min_detection_confidence=0.5, min_tracking_confidence=0.5
         ) as holistic:
-            # --- Jalankan deteksi pose ---
-            results = holistic.process(image)
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            results = holistic.process(image_rgb)
+            image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
 
-            # Gambar landmark untuk feedback visual
+            # Gambar landmark
             mp_drawing.draw_landmarks(
-                image,
+                image_bgr,
                 results.pose_landmarks,
                 mp_holistic.POSE_CONNECTIONS,
                 mp_drawing.DrawingSpec(
@@ -114,102 +110,69 @@ def handle_image(data):
                 ),
             )
 
-            body_language_class = "none"
-            body_language_prob = [0.0] * num_classes  # default
+            pose_class = "none"
+            pose_probabilities = [0.0] * num_classes
 
-            if results.pose_landmarks is not None:
-                # Ekstraksi 33 landmark × 4 (x,y,z,visibility) → total 132 dimensi
-                pose = results.pose_landmarks.landmark
+            if results.pose_landmarks:
+                landmarks = results.pose_landmarks.landmark
                 pose_row = np.array(
-                    [[lmk.x, lmk.y, lmk.z, lmk.visibility] for lmk in pose]
+                    [[lmk.x, lmk.y, lmk.z, lmk.visibility] for lmk in landmarks]
                 ).flatten()
-                # Pastikan semua nilai di‐clip [0,1] (opsional)
                 pose_row = np.clip(pose_row, 0.0, 1.0)
 
-                # Masukkan ke deque milik user_id ini
-                seq_deque = user_sequences[user_id]
-                seq_deque.append(pose_row)
+                buffer = user_buffers[user_id]
+                buffer.append(pose_row)
 
-                # Hanya saat deque sudah penuh (30 frame), kita inferensi LSTM
-                if len(seq_deque) == 30:
-                    # Bentuk tensor: (1, 30, 132)
-                    seq_np = np.array(seq_deque)  # shape = (30, 132)
-                    input_tensor = (
-                        torch.from_numpy(seq_np[np.newaxis, ...]).float().to(DEVICE)
-                    )
+                # Hanya jika buffer penuh
+                if len(buffer) == 30:
+                    input_seq = np.array(buffer)[np.newaxis, ...]  # (1, 30, 132)
+                    input_tensor = torch.from_numpy(input_seq).float().to(DEVICE)
 
                     with torch.no_grad():
-                        outputs = lstm_model(input_tensor)  # (1, num_classes)
-                        probs = torch.nn.functional.softmax(outputs, dim=1)[
-                            0
-                        ]  # (num_classes,)
-                        predicted_idx = torch.argmax(probs).item()
-                        body_language_class = label_encoder.inverse_transform(
-                            [predicted_idx]
-                        )[0]
-                        body_language_prob = probs.cpu().numpy().tolist()
+                        output = model(input_tensor)
+                        probs = torch.nn.functional.softmax(output, dim=1)[0]
+                        pred_index = torch.argmax(probs).item()
 
-                    # Jika Anda ingin sliding window (bukan clear buffer),
-                    # deque sudah otomatis slide (maxlen=30). Berikutnya
-                    # frame akan memasukkan indeks ke-31, dan frame ke-1
-                    # otomatis ter-pop dari kiri. Jadi Anda tidak perlu
-                    # mengosongkan deque.
+                        pose_class = label_encoder.inverse_transform([pred_index])[0]
+                        pose_probabilities = probs.cpu().numpy().tolist()
 
-                    # Jika ingin hanya sekali prediksi lalu clear:
-                    # seq_deque.clear()
-
-                # Jika results.pose_landmarks ada tapi deque belum sampai 30,
-                # body_language_class tetap "none" atau bisa kirimkan status "menunggu buffer".
-
-            # Insert ke database jika ingin:
-            # (misalnya hanya simpan ketika sudah prediksi, atau selalu)
-            if body_language_class != "none":
-                # Ambil data user dari MongoDB
+            # Simpan ke DB jika sudah ada prediksi
+            if pose_class != "none":
                 user = db.db.users.find_one({"_id": ObjectId(user_id)})
                 gender = user.get("gender", "unknown")
+                status = "Sesuai" if pose_class == selected_pose else "Tidak Sesuai"
 
-                status = (
-                    "Sesuai" if body_language_class == selected_pose else "Tidak Sesuai"
+                db.db.detections.insert_one(
+                    {
+                        "userID": user_id,
+                        "namaGerakan": selected_pose,
+                        "keterangan": status,
+                        "gender": gender,
+                        "tanggal": datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
                 )
 
-                userFrame = {
-                    "userID": user_id,
-                    "namaGerakan": selected_pose,
-                    "keterangan": status,
-                    "gender": gender,
-                    "tanggal": tanggal,
-                }
-                db.db.detections.insert_one(userFrame)
+            # Encode ulang gambar untuk dikirim ke frontend
+            _, buffer_img = cv2.imencode(".jpg", image_bgr)
+            encoded_image = base64.b64encode(buffer_img).decode("utf-8")
 
-            # Encode kembali gambar hasil anotasi menjadi base64
-            processed_image_bytes = cv2.imencode(".jpg", image)[1].tobytes()
-            processed_image_data = base64.b64encode(processed_image_bytes).decode(
-                "utf-8"
-            )
-
-            # Kirimkan response via SocketIO
-            # Ambil probabilitas tertinggi sebagai float
-            max_prob = (
-                float(np.max(body_language_prob))
-                if len(body_language_prob) > 0
-                else 0.0
-            )
             emit(
                 "response",
                 {
-                    "imageData": processed_image_data,
-                    "pose_class": body_language_class,
-                    "prob": str(max_prob),
+                    "imageData": encoded_image,
+                    "pose_class": pose_class,
+                    "prob": str(float(np.max(pose_probabilities))),
                 },
             )
 
     except Exception as e:
-        print("Error processing image:", e)
+        print("Error in handle_image:", e)
 
 
-# =====================================================
-# STEP D: Daftarkan Handler ke Socket.IO
-# =====================================================
+# ================================
+# D. Register Socket Events
+# ================================
+
 socketio.on_event("connect", handle_connect)
 socketio.on_event("disconnect", handle_disconnected)
 socketio.on_event("message", handle_message)
