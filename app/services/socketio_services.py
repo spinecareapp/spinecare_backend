@@ -1,5 +1,3 @@
-# run.py
-
 import base64
 import cv2
 import numpy as np
@@ -14,10 +12,11 @@ from bson import ObjectId
 from app import db, socketio
 from flask_socketio import emit
 
-
 # ================================
 # A. Load Model & Label Encoder
 # ================================
+
+print("[INFO] Memuat model LSTM dan label encoder...")
 
 
 class PoseLSTM(nn.Module):
@@ -33,29 +32,28 @@ class PoseLSTM(nn.Module):
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Path model & encoder
 MODEL_PATH = "./model_weights/final_lstm_pose_model.pt"
 ENCODER_PATH = "./model_weights/final_label_encoder.pkl"
 
-# Load label encoder
 with open(ENCODER_PATH, "rb") as f:
     label_encoder = pickle.load(f)
+    print(f"[DEBUG] Label encoder berisi kelas: {label_encoder.classes_}")
 
-# Load model
 num_classes = len(label_encoder.classes_)
 model = PoseLSTM(num_classes=num_classes).to(DEVICE)
 model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 model.eval()
-
+print(f"[INFO] Model berhasil dimuat. Perangkat: {DEVICE}")
 
 # ================================
 # B. MediaPipe Setup & Buffer
 # ================================
 
+print("[INFO] Inisialisasi MediaPipe dan buffer pengguna...")
+
 mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
-user_buffers = defaultdict(lambda: deque(maxlen=30))  # buffer per user
-
+user_buffers = defaultdict(lambda: deque(maxlen=30))
 
 # ================================
 # C. Socket.IO Handlers
@@ -63,41 +61,47 @@ user_buffers = defaultdict(lambda: deque(maxlen=30))  # buffer per user
 
 
 def handle_connect():
-    print("Client connected")
+    print("[INFO] Client terhubung")
 
 
 def handle_disconnected():
-    print("Client disconnected")
+    print("[INFO] Client terputus")
 
 
 def handle_message(message):
-    print("Received message:", message)
+    print("[DEBUG] Pesan diterima:", message)
 
 
 def handle_image(data):
     try:
-        # Ambil data dari klien
+        print("[INFO] Menerima data gambar dari klien...")
+
         user_id = data.get("userId")
         selected_pose = data.get("selected_pose")
         image_data = data.get("image_data")
 
         if not all([user_id, selected_pose, image_data]):
+            print("[ERROR] Data tidak lengkap:", data)
             raise ValueError("Data tidak lengkap dari klien")
 
-        # Decode base64
+        print(f"[DEBUG] User ID: {user_id}, Pose yang dipilih: {selected_pose}")
+
         image_bytes = base64.b64decode(image_data)
         np_image = np.frombuffer(image_bytes, np.uint8)
         image = cv2.imdecode(np_image, cv2.IMREAD_COLOR)
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        # Jalankan MediaPipe
         with mp_holistic.Holistic(
             min_detection_confidence=0.5, min_tracking_confidence=0.5
         ) as holistic:
             results = holistic.process(image_rgb)
             image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
 
-            # Gambar landmark
+            if results.pose_landmarks:
+                print("[DEBUG] Landmark berhasil dideteksi.")
+            else:
+                print("[DEBUG] Landmark tidak terdeteksi.")
+
             mp_drawing.draw_landmarks(
                 image_bgr,
                 results.pose_landmarks,
@@ -123,9 +127,10 @@ def handle_image(data):
                 buffer = user_buffers[user_id]
                 buffer.append(pose_row)
 
-                # Hanya jika buffer penuh
+                print(f"[DEBUG] Buffer panjang saat ini: {len(buffer)}")
+
                 if len(buffer) == 30:
-                    input_seq = np.array(buffer)[np.newaxis, ...]  # (1, 30, 132)
+                    input_seq = np.array(buffer)[np.newaxis, ...]
                     input_tensor = torch.from_numpy(input_seq).float().to(DEVICE)
 
                     with torch.no_grad():
@@ -136,7 +141,10 @@ def handle_image(data):
                         pose_class = label_encoder.inverse_transform([pred_index])[0]
                         pose_probabilities = probs.cpu().numpy().tolist()
 
-            # Simpan ke DB jika sudah ada prediksi
+                        print(
+                            f"[INFO] Prediksi pose: {pose_class}, Probabilitas: {pose_probabilities[pred_index]:.4f}"
+                        )
+
             if pose_class != "none":
                 user = db.db.users.find_one({"_id": ObjectId(user_id)})
                 gender = user.get("gender", "unknown")
@@ -152,7 +160,10 @@ def handle_image(data):
                     }
                 )
 
-            # Encode ulang gambar untuk dikirim ke frontend
+                print(
+                    f"[INFO] Data disimpan ke DB: Pose: {selected_pose}, Status: {status}"
+                )
+
             _, buffer_img = cv2.imencode(".jpg", image_bgr)
             encoded_image = base64.b64encode(buffer_img).decode("utf-8")
 
@@ -165,13 +176,17 @@ def handle_image(data):
                 },
             )
 
+            print("[INFO] Respon dikirim ke klien.")
+
     except Exception as e:
-        print("Error in handle_image:", e)
+        print("[ERROR] Terjadi kesalahan di handle_image:", e)
 
 
 # ================================
 # D. Register Socket Events
 # ================================
+
+print("[INFO] Mendaftarkan event Socket.IO...")
 
 socketio.on_event("connect", handle_connect)
 socketio.on_event("disconnect", handle_disconnected)
