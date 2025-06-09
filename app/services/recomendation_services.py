@@ -88,3 +88,9 @@ def get_history_by_email(email):
         doc["_id"] = str(doc["_id"])
         data.append(doc)
     return data
+
+
+def delete_history_by_id(history_id):
+    from bson import ObjectId
+    result = db.db.recomendation.delete_one({"_id": ObjectId(history_id)})
+    return result.deleted_count > 0

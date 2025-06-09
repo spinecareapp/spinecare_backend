@@ -1,6 +1,7 @@
 # app/routes/rekomendasi_routes.py
 from flask import Blueprint, request, jsonify
 from app.services.recomendation_services import (
+    delete_history_by_id,
     rekomendasi_gerakan,
     simpan_rekomendasi,
     get_history_by_email,
@@ -45,3 +46,15 @@ def get_history():
 
     data = get_history_by_email(email)
     return jsonify(data), 200
+
+
+@bp.route("/historyrecomendation/<id>", methods=["DELETE"])
+def delete_history(id):
+    try:
+        deleted = delete_history_by_id(id)
+        if deleted:
+            return jsonify({"message": "Riwayat berhasil dihapus"}), 200
+        else:
+            return jsonify({"error": "Riwayat tidak ditemukan"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
