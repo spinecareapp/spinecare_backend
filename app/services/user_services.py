@@ -23,6 +23,7 @@ def get_profile(email):
                 'fullname': user["fullname"],
                 'email': user["email"],
                 'no_hp': user["no_hp"],
+                'gender': user["gender"],
                 'photo': user["photo"],
             }
         }, 200
