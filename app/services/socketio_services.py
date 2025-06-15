@@ -51,6 +51,7 @@ print("[INFO] Inisialisasi MediaPipe dan buffer pengguna...")
 mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
 user_buffers = defaultdict(lambda: deque(maxlen=30))
+user_predictions = defaultdict(lambda: deque(maxlen=5))
 
 # ================================
 # C. Socket.IO Handlers
@@ -132,6 +133,18 @@ def handle_image(data):
 
                 pose_class = label_encoder.inverse_transform([pred_index])[0]
                 pose_probabilities = probs.cpu().numpy().tolist()
+
+                # Simpan prediksi ke dalam buffer
+                user_predictions[user_id].append(pose_class)
+
+                # Majority voting
+                counts = defaultdict(int)
+                for p in user_predictions[user_id]:
+                    counts[p] += 1
+                stable_prediction = max(counts, key=counts.get)  # Prediksi paling sering
+
+                # Ganti pose_class menjadi versi yang distabilkan
+                pose_class = stable_prediction
 
                 print(f"[INFO] Prediksi pose: {pose_class}, Probabilitas: {pose_probabilities[pred_index]:.4f}")
 
