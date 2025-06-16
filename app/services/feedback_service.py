@@ -1,12 +1,12 @@
 from app import db  # import PyMongo instance dari app mu
 
 
-def simpan_feedback(email: str, date: str, daftarGerakan: str, pain_level: int):
+def simpan_feedback(userId: str, date: str, daftarGerakan: str, pain_level: int):
     """
     Simpan satu dokumen feedback pain scale ke koleksi `feedback`.
     """
     doc = {
-        "email": email,
+        "userId": userId,
         "date": date,
         "daftar_gerakan": daftarGerakan,
         "pain_level": pain_level,
@@ -15,14 +15,14 @@ def simpan_feedback(email: str, date: str, daftarGerakan: str, pain_level: int):
     return result
 
 
-def ambil_feedback_by_email(email: str):
-    cursor = db.db.feedback.find({"email": email})
+def ambil_feedback_by_userId(userId: str):
+    cursor = db.db.feedback.find({"userId": userId})
     feedbacks = []
     for doc in cursor:
         feedbacks.append(
             {
                 "id": str(doc["_id"]),
-                "email": doc["email"],
+                "userId": doc["userId"],
                 "date": doc["date"],
                 "painLevel": doc["pain_level"],
                 "daftar_gerakan": doc.get("daftar_gerakan", []),  # <- tambahkan ini

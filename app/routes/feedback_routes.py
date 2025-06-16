@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.services.feedback_service import ambil_feedback_by_email, simpan_feedback
+from app.services.feedback_service import ambil_feedback_by_userId, simpan_feedback
 
 bp = Blueprint("feedback", __name__)
 
@@ -10,12 +10,12 @@ def post_feedback():
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
 
-    email = data.get("email")
+    userId = data.get("userId")
     date = data.get("date")
     daftar_gerakan = data.get("daftar_gerakan", [])
     pain = data.get("pain_level")
 
-    if not email or not date or pain is None:
+    if not userId or not date or pain is None:
         return jsonify({"error": "Fields email, date, pain_level dibutuhkan"}), 400
 
     try:
@@ -25,7 +25,7 @@ def post_feedback():
     except (ValueError, TypeError):
         return jsonify({"error": "pain_level harus integer 0–10"}), 400
 
-    result = simpan_feedback(email, date, daftar_gerakan, pain)
+    result = simpan_feedback(userId, date, daftar_gerakan, pain)
     return (
         jsonify(
             {"message": "Feedback received", "feedback_id": str(result.inserted_id)}
@@ -36,9 +36,9 @@ def post_feedback():
 
 @bp.route("/feedback", methods=["GET"])
 def get_feedback():
-    email = request.args.get("email")
-    if not email:
-        return jsonify({"error": "Parameter email diperlukan"}), 400
+    userId = request.args.get("userId")
+    if not userId:
+        return jsonify({"error": "Parameter userId diperlukan"}), 400
 
-    feedbacks = ambil_feedback_by_email(email)
+    feedbacks = ambil_feedback_by_userId(userId)
     return jsonify(feedbacks), 200

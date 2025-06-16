@@ -69,11 +69,11 @@ def rekomendasi_gerakan(
     return rekomendasi[:jumlah_rekomendasi]
 
 
-def simpan_rekomendasi(email, rekomendasi, diagnosa):
+def simpan_rekomendasi(userId, rekomendasi, diagnosa):
     timestamp = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
     db.db.recomendation.insert_one(
         {
-            "email": email,
+            "userId": userId,
             "timestamp": timestamp,
             "rekomendasi": rekomendasi,
             "diagnosa": diagnosa,
@@ -81,8 +81,8 @@ def simpan_rekomendasi(email, rekomendasi, diagnosa):
     )
 
 
-def get_history_by_email(email):
-    results = db.db.recomendation.find({"email": email})
+def get_history_by_userId(userId):
+    results = db.db.recomendation.find({"userId": userId})
     data = []
     for doc in results:
         doc["_id"] = str(doc["_id"])
