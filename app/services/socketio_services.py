@@ -24,7 +24,7 @@ def handle_message(message):
 
 
 # Load model
-with open("./model_weights/weights_body_language2.pkl", "rb") as f:
+with open("./model_weights/randomforest.pkl", "rb") as f:
     model = pickle.load(f)
 
 # Mediapipe
