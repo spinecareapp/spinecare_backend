@@ -8,4 +8,4 @@ print(app.config["MONGO_URI"])  # Untuk mengecek apakah URI terkonfigurasi denga
 
 if __name__ == "__main__":
     # subprocess.Popen(["streamlit", "run", "streamlit.py"])
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=6000, debug=True, allow_unsafe_werkzeug=True)
