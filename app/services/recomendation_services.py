@@ -1,9 +1,9 @@
-# app/services/rekomendasi_service.py
 import pandas as pd
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from app import db
+from bson.objectid import ObjectId # <-- Tambahkan import ini
 
 # Load dataset
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -69,11 +69,11 @@ def rekomendasi_gerakan(
     return rekomendasi[:jumlah_rekomendasi]
 
 
-def simpan_rekomendasi(userId, rekomendasi, diagnosa):
+def simpan_rekomendasi(userId, rekomendasi, diagnosa): # <-- Diubah dari 'email' ke 'userId' agar konsisten
     timestamp = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
     db.db.recomendation.insert_one(
         {
-            "userId": userId,
+            "userId": userId, # <-- Diubah dari 'email' ke 'userId'
             "timestamp": timestamp,
             "rekomendasi": rekomendasi,
             "diagnosa": diagnosa,
@@ -81,7 +81,11 @@ def simpan_rekomendasi(userId, rekomendasi, diagnosa):
     )
 
 
+# --- PERUBAHAN DIMULAI DI SINI ---
+
+# 1. Mengubah nama fungsi dari get_history_by_email menjadi get_history_by_userId
 def get_history_by_userId(userId):
+    # Query berdasarkan 'userId' karena fungsi simpan_rekomendasi menyimpannya sebagai 'userId'
     results = db.db.recomendation.find({"userId": userId})
     data = []
     for doc in results:
@@ -89,8 +93,19 @@ def get_history_by_userId(userId):
         data.append(doc)
     return data
 
-
+# 2. Menambahkan fungsi delete_history_by_id yang hilang
 def delete_history_by_id(history_id):
-    from bson import ObjectId
-    result = db.db.recomendation.delete_one({"_id": ObjectId(history_id)})
-    return result.deleted_count > 0
+    """
+    Menghapus satu riwayat rekomendasi dari database berdasarkan ID-nya.
+    Menggunakan ObjectId untuk mencari dokumen di MongoDB.
+    """
+    try:
+        # Konversi string id ke ObjectId MongoDB
+        obj_id = ObjectId(history_id)
+        # Hapus dokumen dengan _id yang cocok
+        result = db.db.recomendation.delete_one({"_id": obj_id})
+        # Kembalikan True jika ada 1 dokumen yang terhapus, selain itu False
+        return result.deleted_count > 0
+    except Exception as e:
+        print(f"Error saat menghapus riwayat: {e}")
+        return False
