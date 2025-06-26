@@ -61,7 +61,7 @@ def register_user(data):
             "url": confirmation_url
         }
         
-        msg = Message(subject="Verify Your Email - SpineMotion", sender="spinemotionapp@gmail.com", recipients=[email])
+        msg = Message(subject="Verify Your Email - Spinecare", sender="spinecareapp@gmail.com", recipients=[email])
         msg.html = render_template("verify-email.html", data=data)
         
         mail.send(msg)

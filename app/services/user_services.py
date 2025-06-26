@@ -54,7 +54,7 @@ def forgot_password_user(data):
         
         confirmation_url = url_for('user.reset_password_view', token=verification_token, _external=True)
         
-        msg = Message(subject="Reser Your Password - SpineMotion", sender="spinemotionapp@gmail.com", recipients=[email])
+        msg = Message(subject="Reser Your Password - Spinecare", sender="spinecareapp@gmail.com", recipients=[email])
         msg.html = render_template("reset-password.html", url=confirmation_url)
         
         mail.send(msg)
@@ -189,7 +189,7 @@ def request_change_email_service(data):
             
             db.db.otp_change_email.insert_one(input_otp)
             
-            msg = Message(subject="OTP to Verify New Email - Spinemotion", sender="spinemotionapp@gmail.com", recipients=[new_email])
+            msg = Message(subject="OTP to Verify New Email - Spinecare", sender="spinecareapp@gmail.com", recipients=[new_email])
             msg.html = render_template("verify-change-email.html", data=data)
             mail.send(msg)
             
