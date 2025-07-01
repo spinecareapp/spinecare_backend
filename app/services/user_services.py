@@ -226,6 +226,8 @@ def verify_otp_service(data):
     }, 200
     
 def update_profile_service(data, files):
+    print("Data diterima:", data)
+    print("Files diterima:", files)
     email = get_jwt_identity()
     user = db.db.users.find_one({"email": email})
     
@@ -236,28 +238,44 @@ def update_profile_service(data, files):
     
     try:
         updates = {}
+        # Logika untuk file/foto tetap sama
         if files:
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             filename = f"{timestamp}_image.jpg"
-            path = f"static/uploads/profiles/{filename}"
+            # Pastikan path ini benar dan folder static/uploads/profiles ada
+            path = f"static/uploads/profiles/{filename}" 
             files.save(path)
             updates["photo"] = filename
         
-        if "fullname" in data:
+        # Cek field 'fullname'
+        if "fullname" in data and data["fullname"]:
             updates["fullname"] = data["fullname"]
             
-        if "no_hp" in data:
-            updates["no_hp"] = data["no_hp"]
+        # ================== PERBAIKAN UTAMA DI SINI ==================
+        # 1. Cek kunci 'noHp' yang dikirim dari Flutter
+        if "noHp" in data and data["noHp"]:
+            # 2. Simpan ke dictionary 'updates' dengan kunci 'no_hp' (sesuai field database)
+            updates["no_hp"] = data["noHp"] 
+        # ============================================================
             
-        if updates:
-            db.db.users.update_one({"email": email}, {"$set": updates})
+        # Cek jika ada sesuatu untuk diupdate
+        if not updates:
+            # Jika tidak ada field valid yang dikirim, kembalikan pesan yang sesuai
+            return {
+                "message": "Tidak ada data untuk diupdate atau data kosong"
+            }, 400
+
+        # Hanya jalankan update jika 'updates' tidak kosong
+        db.db.users.update_one({"email": email}, {"$set": updates})
             
         return {
             "message": "Berhasil update profil"
-        }
+        }, 200 # Eksplisit kembalikan status 200
+
     except Exception as e:
+        print(f"Terjadi error saat update: {e}") # Tambahkan print error untuk debug
         return {
-            "message": f"Error {e}"
+            "message": f"Error internal server: {e}"
         }, 500
         
 def perform_service(email):
