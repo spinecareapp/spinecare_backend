@@ -1,4 +1,5 @@
 import os
+from mimetypes import guess_type
 from flask import Blueprint, current_app, request, send_file
 from flask_jwt_extended import jwt_required
 from app.utils.decorators import api_key_required
@@ -53,4 +54,9 @@ def get_image(image_name):
     full_path = os.path.join(
         current_app.root_path, "static", "uploads", "articles", image_name
     )
-    return send_file(full_path, mimetype="image/jpeg")
+
+    if not os.path.isfile(full_path):
+        return {"message": "File not found"}, 404
+
+    mime_type, _ = guess_type(full_path)
+    return send_file(full_path, mimetype=mime_type)
