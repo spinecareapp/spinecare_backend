@@ -1,5 +1,5 @@
 from bson import ObjectId
-from flask import jsonify
+from flask import current_app, jsonify
 from app import db
 import datetime
 from werkzeug.utils import secure_filename
@@ -85,13 +85,14 @@ def update_article_with_file_service(id, data, photo=None):
     if photo:
         clean_name = secure_filename(photo.filename)
         filename = f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{clean_name}"
-        folder_path = os.path.join("static", "uploads", "articles")
-        file_path = os.path.join(folder_path, filename)
 
-        # Pastikan folder ada
+        folder_path = os.path.abspath(
+            os.path.join(current_app.root_path, "static", "uploads", "articles")
+        )
         os.makedirs(folder_path, exist_ok=True)
 
-        # Simpan file dan log
+        file_path = os.path.join(folder_path, filename)
+
         print(f"Simpan file ke: {file_path}")
         photo.save(file_path)
 
