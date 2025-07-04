@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from app import db
-from bson.objectid import ObjectId # <-- Tambahkan import ini
+from bson.objectid import ObjectId  # <-- Tambahkan import ini
 
 # Load dataset
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -68,20 +68,20 @@ def rekomendasi_gerakan(
         )
     return rekomendasi[:jumlah_rekomendasi]
 
-
-def simpan_rekomendasi(userId, rekomendasi, diagnosa): # <-- Diubah dari 'email' ke 'userId' agar konsisten
-    timestamp = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
-    db.db.recomendation.insert_one(
-        {
-            "userId": userId, # <-- Diubah dari 'email' ke 'userId'
-            "timestamp": timestamp,
-            "rekomendasi": rekomendasi,
-            "diagnosa": diagnosa,
-        }
-    )
+def simpan_rekomendasi(userId, rekomendasi, diagnosa):
+    data = {
+        "userId": userId,
+        "arah_latihan": rekomendasi["arah_latihan"],
+        "gerakan": rekomendasi["gerakan"],
+        "diagnosa": diagnosa,
+        "timestamp": datetime.now(),
+    }
+    result = db.db.recomendation.insert_one(data)
+    return str(result.inserted_id)
 
 
 # --- PERUBAHAN DIMULAI DI SINI ---
+
 
 # 1. Mengubah nama fungsi dari get_history_by_email menjadi get_history_by_userId
 def get_history_by_userId(userId):
@@ -92,6 +92,7 @@ def get_history_by_userId(userId):
         doc["_id"] = str(doc["_id"])
         data.append(doc)
     return data
+
 
 # 2. Menambahkan fungsi delete_history_by_id yang hilang
 def delete_history_by_id(history_id):

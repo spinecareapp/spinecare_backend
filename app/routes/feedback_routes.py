@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.feedback_service import ambil_feedback_by_userId, simpan_feedback
 
+
 bp = Blueprint("feedback", __name__)
 
 
@@ -12,11 +13,16 @@ def post_feedback():
 
     userId = data.get("userId")
     date = data.get("date")
-    daftar_gerakan = data.get("daftar_gerakan", [])
+    rekomendasi_id = data.get("rekomendasi_id")
     pain = data.get("pain_level")
 
-    if not userId or not date or pain is None:
-        return jsonify({"error": "Fields email, date, pain_level dibutuhkan"}), 400
+    if not userId or not date or not rekomendasi_id or pain is None:
+        return (
+            jsonify(
+                {"error": "Fields userId, date, rekomendasi_id, pain_level dibutuhkan"}
+            ),
+            400,
+        )
 
     try:
         pain = int(pain)
@@ -25,7 +31,7 @@ def post_feedback():
     except (ValueError, TypeError):
         return jsonify({"error": "pain_level harus integer 0–10"}), 400
 
-    result = simpan_feedback(userId, date, daftar_gerakan, pain)
+    result = simpan_feedback(userId, date, rekomendasi_id, pain)
     return (
         jsonify(
             {"message": "Feedback received", "feedback_id": str(result.inserted_id)}
