@@ -13,7 +13,7 @@ from flask import request
 from flask_socketio import emit
 
 # Pastikan 'app' dan 'socketio' diimpor dengan benar dari struktur proyek Anda
-from app import db, socketio 
+from app import db, socketio
 
 # ===================================================================
 # FUNGSI NORMALISASI
@@ -22,6 +22,7 @@ LEFT_SHOULDER = 11
 RIGHT_SHOULDER = 12
 LEFT_HIP = 23
 RIGHT_HIP = 24
+
 
 def normalize_landmarks(landmarks_row):
     landmarks = landmarks_row.reshape(33, 4)
@@ -32,8 +33,12 @@ def normalize_landmarks(landmarks_row):
         right_hip = landmarks[RIGHT_HIP][:2]
     except IndexError:
         return landmarks_row.flatten()
-    torso_center_x = (left_shoulder[0] + right_shoulder[0] + left_hip[0] + right_hip[0]) / 4
-    torso_center_y = (left_shoulder[1] + right_shoulder[1] + left_hip[1] + right_hip[1]) / 4
+    torso_center_x = (
+        left_shoulder[0] + right_shoulder[0] + left_hip[0] + right_hip[0]
+    ) / 4
+    torso_center_y = (
+        left_shoulder[1] + right_shoulder[1] + left_hip[1] + right_hip[1]
+    ) / 4
     anchor = np.array([torso_center_x, torso_center_y])
     torso_size = np.linalg.norm(left_shoulder - right_shoulder) + 1e-6
     normalized_landmarks = landmarks.copy()
@@ -43,10 +48,12 @@ def normalize_landmarks(landmarks_row):
         normalized_landmarks[i][2] = landmarks[i][2] / torso_size
     return normalized_landmarks.flatten()
 
+
 # ================================
 # A. LOAD MODEL & LABEL ENCODER
 # ================================
 print("[INFO] Memuat model LSTM dan label encoder...")
+
 
 class PoseLSTM(nn.Module):
     def __init__(self, input_size=132, hidden_size=128, num_classes=12):
@@ -61,6 +68,7 @@ class PoseLSTM(nn.Module):
         out = self.dropout(out)
         out = self.fc(out)
         return out
+
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_PATH = "./model_weights/best_lstm_pose_model.pt"
@@ -79,15 +87,19 @@ print(f"[INFO] Model berhasil dimuat. Perangkat: {DEVICE}")
 # ================================
 print("[INFO] Inisialisasi MediaPipe dan buffer pengguna...")
 mp_holistic = mp.solutions.holistic
-holistic_model = mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+holistic_model = mp_holistic.Holistic(
+    min_detection_confidence=0.5, min_tracking_confidence=0.5
+)
 user_buffers = defaultdict(lambda: deque(maxlen=30))
 sid_to_user = {}
+
 
 # ================================
 # C. SOCKET.IO HANDLERS
 # ================================
 def handle_connect():
     print(f"[INFO] Client terhubung: {request.sid}")
+
 
 def handle_disconnected():
     sid = request.sid
@@ -98,8 +110,10 @@ def handle_disconnected():
             del user_buffers[user_id]
             print(f"[CLEANUP] Buffer dan sesi untuk user {user_id} telah dibersihkan.")
 
+
 def handle_message(message):
     print(f"[DEBUG] Pesan umum diterima dari {request.sid}: {message}")
+
 
 def handle_image(data):
     sid = request.sid
@@ -109,7 +123,10 @@ def handle_image(data):
         image_data = data.get("image_data")
 
         if not all([user_id, selected_pose, image_data]):
-            return emit("response", {"status": "error", "message": "Data dari klien tidak lengkap"})
+            return emit(
+                "response",
+                {"status": "error", "message": "Data dari klien tidak lengkap"},
+            )
 
         if sid not in sid_to_user:
             sid_to_user[sid] = user_id
@@ -122,13 +139,17 @@ def handle_image(data):
         results = holistic_model.process(image_rgb)
 
         if not results.pose_landmarks:
-            return emit("response", {"status": "no_pose", "message": "Pose tidak terdeteksi"})
+            return emit(
+                "response", {"status": "no_pose", "message": "Pose tidak terdeteksi"}
+            )
 
         landmarks = results.pose_landmarks.landmark
-        pose_row = np.array([[lmk.x, lmk.y, lmk.z, lmk.visibility] for lmk in landmarks]).flatten()
-        
+        pose_row = np.array(
+            [[lmk.x, lmk.y, lmk.z, lmk.visibility] for lmk in landmarks]
+        ).flatten()
+
         normalized_pose_row = normalize_landmarks(pose_row)
-        
+
         buffer = user_buffers[user_id]
         buffer.append(normalized_pose_row)
 
@@ -144,15 +165,15 @@ def handle_image(data):
             pred_index = torch.argmax(probs).item()
             predicted_class = label_encoder.inverse_transform([pred_index])[0]
             confidence = probs[pred_index].item()
-        
+
         # ==========================================================
         # <<< JURUS TERAKHIR: LOGIKA PERBANDINGAN PINTAR >>>
         # ==========================================================
         # 1. Bersihkan kedua string dengan mengubahnya ke huruf kecil,
         #    mengganti tanda hubung dengan spasi, dan menghapus spasi ekstra.
-        clean_predicted = predicted_class.lower().replace('-', ' ').strip()
-        clean_selected = selected_pose.lower().replace('-', ' ').strip()
-        
+        clean_predicted = predicted_class.lower().replace("-", " ").strip()
+        clean_selected = selected_pose.lower().replace("-", " ").strip()
+
         # 2. Lakukan perbandingan menggunakan versi yang sudah bersih.
         is_match = clean_predicted == clean_selected
 
@@ -161,22 +182,52 @@ def handle_image(data):
 
         # (Opsional) Tambahkan print untuk melihat hasil pembersihan
         print("--- DEBUGGING PERBANDINGAN ---")
-        print(f"Target dari Flutter (selected_pose): '{selected_pose}' -> Dibersihkan: '{clean_selected}'")
-        print(f"Prediksi dari Model (predicted_class): '{predicted_class}' -> Dibersihkan: '{clean_predicted}'")
+        print(
+            f"Target dari Flutter (selected_pose): '{selected_pose}' -> Dibersihkan: '{clean_selected}'"
+        )
+        print(
+            f"Prediksi dari Model (predicted_class): '{predicted_class}' -> Dibersihkan: '{clean_predicted}'"
+        )
         print(f"Hasil Cocok? -> {is_match}")
         print("---------------------------------")
         # ==========================================================
 
+        # Tambahkan drawing landmark
+        annotated_image = image.copy()
+        mp_drawing = mp.solutions.drawing_utils
+        mp_drawing.draw_landmarks(
+            annotated_image,
+            results.pose_landmarks,
+            mp_holistic.POSE_CONNECTIONS,
+            landmark_drawing_spec=mp_drawing.DrawingSpec(
+                color=(255, 255, 255), thickness=2, circle_radius=4  # Putih untuk titik
+            ),
+            connection_drawing_spec=mp_drawing.DrawingSpec(
+                color=(255, 255, 255),  # Biru kehijauan untuk garis
+                thickness=5,
+                circle_radius=2,
+            ),
+        )
+
+        # Encode jadi base64
+        _, buffer = cv2.imencode(".jpg", annotated_image)
+        encoded_image = base64.b64encode(buffer).decode("utf-8")
+
         # Kirim respons yang dibutuhkan oleh Flutter
-        emit("response", {
-            "status": status,
-            "pose_class": predicted_class, # Kirim nama asli dari model
-            "prob": str(confidence),
-        })
+        emit(
+            "response",
+            {
+                "status": status,
+                "pose_class": predicted_class,
+                "prob": str(confidence),
+                "processed_image": encoded_image,  # Tambahkan ini
+            },
+        )
 
     except Exception as e:
         print(f"[ERROR] Terjadi kesalahan di handle_image: {e}")
         emit("response", {"status": "error", "message": str(e)})
+
 
 def handle_reset_buffer(data):
     user_id = data.get("userId")
@@ -184,6 +235,7 @@ def handle_reset_buffer(data):
         user_buffers[user_id].clear()
         print(f"[INFO] Buffer untuk user {user_id} telah direset.")
     emit("response", {"status": "buffer_reset", "message": "Buffer berhasil direset."})
+
 
 # ================================
 # D. REGISTER SOCKET EVENTS
@@ -195,6 +247,7 @@ def register_socket_handlers(socketio_instance):
     socketio_instance.on_event("message", handle_message)
     socketio_instance.on_event("image", handle_image)
     socketio_instance.on_event("reset_buffer", handle_reset_buffer)
+
 
 # Di file utama Anda (app.py atau __init__.py), Anda akan memanggil:
 # from .services import socketio_services
