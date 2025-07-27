@@ -7,7 +7,7 @@ def hello_world():
     <html lang="id">
     <head>
         <meta charset="UTF-8">
-        <title>SpineMotion - Sehatkan Tulang Belakang Anda</title>
+        <title>Spinecare - Sehatkan Tulang Belakang Anda</title>
         <style>
             body {
                 font-family: 'Segoe UI', sans-serif;
@@ -107,7 +107,7 @@ def delete_account():
     return """
     <html>
     <head>
-        <title>Permintaan Penghapusan Akun - SpineMotion</title>
+        <title>Permintaan Penghapusan Akun - Spinecare</title>
         <style>
             body {
                 display: flex;
@@ -132,9 +132,9 @@ def delete_account():
     </head>
     <body>
         <div class="container">
-            <h2>Permintaan Penghapusan Akun - SpineMotion</h2>
+            <h2>Permintaan Penghapusan Akun - Spinecare</h2>
             <p>Jika Anda ingin menghapus akun dan seluruh data Anda, kirim email ke:</p>
-            <p><strong>spinemotionapp@gmail.com</strong></p>
+            <p><strong>spinecareapp@gmail.com</strong></p>
             <p>Dengan subjek: <em>Hapus Akun</em></p>
             <p>Kami akan menghapus akun Anda dan seluruh data terkait dalam waktu 7 hari kerja.</p>
         </div>
@@ -149,7 +149,7 @@ def privacy_policy():
     <html lang="id">
     <head>
         <meta charset="UTF-8">
-        <title>Kebijakan Privasi - SpineMotion</title>
+        <title>Kebijakan Privasi - Spinecare</title>
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -197,8 +197,8 @@ def privacy_policy():
     </head>
     <body>
         <div class="container">
-            <h2>Kebijakan Privasi - SpineMotion</h2>
-            <p>SpineMotion menghargai privasi Anda. Kebijakan privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi pribadi Anda saat menggunakan aplikasi kami.</p>
+            <h2>Kebijakan Privasi - Spinecare</h2>
+            <p>Spinecare menghargai privasi Anda. Kebijakan privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi pribadi Anda saat menggunakan aplikasi kami.</p>
 
             <h3>1. Informasi yang Kami Kumpulkan</h3>
             <p>Kami mengumpulkan informasi berikut:</p>
@@ -222,7 +222,7 @@ def privacy_policy():
             <p>Semua data dikirim secara terenkripsi dan disimpan dengan aman. Kami tidak membagikan informasi Anda kepada pihak ketiga tanpa izin Anda.</p>
 
             <h3>4. Hak Anda</h3>
-            <p>Anda dapat meminta penghapusan akun dan data pribadi Anda kapan saja dengan mengirim email ke <strong>spinemotionapp@gmail.com</strong>.</p>
+            <p>Anda dapat meminta penghapusan akun dan data pribadi Anda kapan saja dengan mengirim email ke <strong>spinecareapp@gmail.com</strong>.</p>
 
             <h3>5. Perubahan Kebijakan</h3>
             <p>Kami dapat memperbarui kebijakan privasi ini dari waktu ke waktu. Perubahan akan diinformasikan melalui aplikasi atau email.</p>
